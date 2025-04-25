@@ -1,18 +1,14 @@
-
 import streamlit as st
 import pandas as pd
 import yfinance as yf
 import datetime
-import matplotlib.pyplot as plt
 from pattern_detector import detect_head_and_shoulders
 from google.oauth2.service_account import Credentials
 import gspread
-from io import BytesIO
 
 # Google Sheets setup
 SHEET_NAME = "HnS_Pattern_Log"
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-SERVICE_ACCOUNT_FILE = "gcp_credentials.json"  # Upload in Streamlit secrets or use st.secrets
 
 # Initialize Google Sheets client
 def get_gsheet_client():
@@ -53,7 +49,7 @@ for i, symbol in enumerate(nifty100_symbols):
             continue
 
         inverse = True if pattern_type == "Inverse H&S" else False
-        match, score, points = detect_head_and_shoulders(df, inverse=inverse)
+        match, score, _ = detect_head_and_shoulders(df, inverse=inverse)
 
         if match and score >= confidence_threshold:
             results.append({
@@ -69,32 +65,14 @@ if results:
     matches_df = pd.DataFrame(results)
     st.dataframe(matches_df, use_container_width=True)
 
-    # Export to sheet with timestamp
     if st.button("📤 Append to Google Sheet Log"):
         append_to_gsheet(matches_df)
 
-    # CSV download
     csv = matches_df.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="📥 Download CSV",
         data=csv,
         file_name="matched_patterns.csv",
         mime='text/csv')
-
-    # Show pattern chart on selection
-    selected = st.selectbox("📊 View Pattern Chart for: ", matches_df["Symbol"])
-    if selected:
-        symbol = selected + ".NS"
-        df = yf.download(symbol, period="120d", interval="1d").dropna().tail(90)
-        _, _, points = detect_head_and_shoulders(df, inverse=inverse)
-
-        fig, ax = plt.subplots(figsize=(10, 5))
-        ax.plot(df.index, df['Close'], label='Close Price')
-        for label, idx in points.items():
-            ax.plot(df.index[idx], df['Close'][idx], 'ro')
-            ax.annotate(label, (df.index[idx], df['Close'][idx]), textcoords="offset points", xytext=(0,10), ha='center')
-        ax.set_title(f"{pattern_type} Pattern in {selected}")
-        ax.legend()
-        st.pyplot(fig)
 else:
     st.warning("😕 No stocks matched the selected pattern with current threshold.")
