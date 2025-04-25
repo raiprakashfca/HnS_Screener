@@ -27,13 +27,14 @@ def detect_head_and_shoulders(df, inverse=False):
         if not (ls < head < rs):
             continue
 
-                lhs = prices[ls].item() if hasattr(prices[ls], 'item') else prices[ls]
+        lhs = prices[ls].item() if hasattr(prices[ls], 'item') else prices[ls]
         hd = prices[head].item() if hasattr(prices[head], 'item') else prices[head]
         rhs = prices[rs].item() if hasattr(prices[rs], 'item') else prices[rs]
+
         if not (hd > lhs and hd > rhs):
             continue
 
-        if not is_similar(prices[ls], prices[rs], tolerance=0.15):
+        if not is_similar(lhs, rhs, tolerance=0.15):
             continue
 
         valid_troughs = [t for t in troughs if ls < t < rs]
@@ -49,8 +50,8 @@ def detect_head_and_shoulders(df, inverse=False):
         neckline_slope = (prices[trough2] - prices[trough1]) / (trough2 - trough1 + 1e-9)
         slope_ok = abs(neckline_slope) < 0.5
 
-        symmetry_score = 1 - abs(prices[ls] - prices[rs]) / prices[head]
-        height_ratio_score = min(prices[ls], prices[rs]) / prices[head]
+        symmetry_score = 1 - abs(lhs - rhs) / hd
+        height_ratio_score = min(lhs, rhs) / hd
         slope_score = 1 - abs(neckline_slope)
 
         confidence = (symmetry_score * 0.4 + height_ratio_score * 0.3 + slope_score * 0.3) * 100
