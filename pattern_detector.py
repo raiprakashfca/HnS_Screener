@@ -10,6 +10,9 @@ def detect_head_and_shoulders(df, inverse=False):
     if inverse:
         prices = -prices
 
+    if prices.size == 0 or np.isnan(prices).all():
+        return False, 0, {}
+
     peaks, _ = find_peaks(prices, distance=5)
     troughs, _ = find_peaks(-prices, distance=5)
 
@@ -21,30 +24,28 @@ def detect_head_and_shoulders(df, inverse=False):
         head = peaks[i]
         rs = peaks[i + 1]
 
-        # Basic ordering check
         if not (ls < head < rs):
             continue
 
-        # Ensure head is highest
         if not (prices[head] > prices[ls] and prices[head] > prices[rs]):
             continue
 
-        # Check shoulders similarity
         if not is_similar(prices[ls], prices[rs], tolerance=0.15):
             continue
 
-        # Find troughs between peaks
-        trough1 = min(troughs, key=lambda x: abs(x - ((ls + head) // 2)))
-        trough2 = min(troughs, key=lambda x: abs(x - ((head + rs) // 2)))
+        valid_troughs = [t for t in troughs if ls < t < rs]
+        if len(valid_troughs) < 2:
+            continue
+
+        trough1 = min(valid_troughs, key=lambda x: abs(x - ((ls + head) // 2)))
+        trough2 = min(valid_troughs, key=lambda x: abs(x - ((head + rs) // 2)))
 
         if not (ls < trough1 < head and head < trough2 < rs):
             continue
 
-        # Neckline check
-        neckline_slope = (prices[trough2] - prices[trough1]) / (trough2 - trough1)
-        slope_ok = abs(neckline_slope) < 0.5  # restrict to reasonable tilt
+        neckline_slope = (prices[trough2] - prices[trough1]) / (trough2 - trough1 + 1e-9)
+        slope_ok = abs(neckline_slope) < 0.5
 
-        # Compute confidence score
         symmetry_score = 1 - abs(prices[ls] - prices[rs]) / prices[head]
         height_ratio_score = min(prices[ls], prices[rs]) / prices[head]
         slope_score = 1 - abs(neckline_slope)
