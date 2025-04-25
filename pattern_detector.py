@@ -16,60 +16,62 @@ def detect_head_and_shoulders(df, inverse=False):
     peaks, _ = find_peaks(prices, distance=5)
     troughs, _ = find_peaks(-prices, distance=5)
 
+    # Ensure peaks and troughs are 1D arrays of integers
     if len(peaks) < 3 or len(troughs) < 2:
         return False, 0, {}
 
+    peaks = peaks.astype(int)
+    troughs = troughs.astype(int)
+
     for i in range(1, len(peaks) - 1):
-        print(f"🔍 Checking peak triplet: LS={peaks[i - 1]}, Head={peaks[i]}, RS={peaks[i + 1]}")
-        ls = peaks[i - 1]
-        head = peaks[i]
-        rs = peaks[i + 1]
-
-        if not (ls < head < rs):
-            continue
-
-        lhs = float(prices[int(ls)])
-        hd = float(prices[int(head)])
-        rhs = float(prices[int(rs)])
-
         try:
-            assert isinstance(hd, float) and isinstance(lhs, float) and isinstance(rhs, float)
+            ls = int(peaks[i - 1])
+            head = int(peaks[i])
+            rs = int(peaks[i + 1])
+
+            if not (ls < head and head < rs):
+                continue
+
+            lhs = float(prices[ls])
+            hd = float(prices[head])
+            rhs = float(prices[rs])
+
             if not (hd > lhs and hd > rhs):
-                            continue
+                continue
+
+            if not is_similar(lhs, rhs, tolerance=0.15):
+                continue
+
+            valid_troughs = [int(t) for t in troughs if ls < t < rs]
+            if len(valid_troughs) < 2:
+                continue
+
+            trough1 = min(valid_troughs, key=lambda x: abs(x - ((ls + head) // 2)))
+            trough2 = min(valid_troughs, key=lambda x: abs(x - ((head + rs) // 2)))
+
+            if not (ls < trough1 < head and head < trough2 < rs):
+                continue
+
+            neckline_slope = (prices[trough2] - prices[trough1]) / (trough2 - trough1 + 1e-9)
+
+            symmetry_score = float(1 - abs(lhs - rhs) / hd)
+            height_ratio_score = float(min(lhs, rhs) / hd)
+            slope_score = float(1 - abs(neckline_slope))
+
+            confidence = (symmetry_score * 0.4 + height_ratio_score * 0.3 + slope_score * 0.3) * 100
+
+            points = {
+                'Left Shoulder': ls,
+                'Head': head,
+                'Right Shoulder': rs,
+                'Trough 1': trough1,
+                'Trough 2': trough2
+            }
+
+            return True, confidence, points
+
         except Exception as e:
-            print(f"❌ Comparison error with hd={hd}, lhs={lhs}, rhs={rhs} → {e}")
+            print(f"❌ Error processing peaks at index {i}: {e}")
             continue
-
-        if not is_similar(lhs, rhs, tolerance=0.15):
-            continue
-
-        valid_troughs = [t for t in troughs if ls < t < rs]
-        if len(valid_troughs) < 2:
-            continue
-
-        trough1 = min(valid_troughs, key=lambda x: abs(x - ((ls + head) // 2)))
-        trough2 = min(valid_troughs, key=lambda x: abs(x - ((head + rs) // 2)))
-
-        if not (ls < trough1 and trough1 < head and head < trough2 and trough2 < rs):
-            continue
-
-        neckline_slope = (prices[trough2] - prices[trough1]) / (trough2 - trough1 + 1e-9)
-        slope_ok = abs(neckline_slope) < 0.5
-
-        symmetry_score = float(1 - abs(lhs - rhs) / hd)
-        height_ratio_score = float(min(lhs, rhs) / hd)
-        slope_score = float(1 - abs(neckline_slope))
-
-        confidence = (symmetry_score * 0.4 + height_ratio_score * 0.3 + slope_score * 0.3) * 100
-
-        points = {
-            'Left Shoulder': ls,
-            'Head': head,
-            'Right Shoulder': rs,
-            'Trough 1': trough1,
-            'Trough 2': trough2
-        }
-
-        return True, confidence, points
 
     return False, 0, {}
