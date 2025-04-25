@@ -27,9 +27,9 @@ def detect_head_and_shoulders(df, inverse=False):
         if not (ls < head < rs):
             continue
 
-        lhs = float(prices[ls])
-        hd = float(prices[head])
-        rhs = float(prices[rs])
+        lhs = float(prices[int(ls)])
+        hd = float(prices[int(head)])
+        rhs = float(prices[int(rs)])
 
         if not (hd > lhs and hd > rhs):
             continue
