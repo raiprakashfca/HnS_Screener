@@ -50,9 +50,9 @@ def detect_head_and_shoulders(df, inverse=False):
         neckline_slope = (prices[trough2] - prices[trough1]) / (trough2 - trough1 + 1e-9)
         slope_ok = abs(neckline_slope) < 0.5
 
-        symmetry_score = 1 - abs(lhs - rhs) / hd
-        height_ratio_score = min(lhs, rhs) / hd
-        slope_score = 1 - abs(neckline_slope)
+        symmetry_score = float(1 - abs(lhs - rhs) / hd)
+        height_ratio_score = float(min(lhs, rhs) / hd)
+        slope_score = float(1 - abs(neckline_slope))
 
         confidence = (symmetry_score * 0.4 + height_ratio_score * 0.3 + slope_score * 0.3) * 100
 
