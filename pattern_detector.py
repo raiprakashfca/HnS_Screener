@@ -6,7 +6,7 @@ def is_similar(a, b, tolerance=0.1):
     return abs(a - b) / max(a, b) <= tolerance
 
 def detect_head_and_shoulders(df, inverse=False):
-    prices = df['Close'].values
+    prices = np.ravel(df['Close'].values)
     if inverse:
         prices = -prices
 
