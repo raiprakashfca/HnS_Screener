@@ -58,19 +58,21 @@ for i, symbol in enumerate(nifty100_symbols):
             continue
 
         inverse = True if pattern_type == "Inverse H&S" else False
+
         try:
-        match, score, _ = detect_head_and_shoulders(df, inverse=inverse)
-        if bool(match) and float(score) >= confidence_threshold:
-            results.append({
-                "Symbol": symbol.replace(".NS", ""),
-                "Confidence %": round(score, 2),
-                "Pattern": pattern_type
-            })
-        else:
-            skipped.append((symbol, "Pattern not matched"))
-    except Exception as e:
-        import traceback
-        skipped.append((symbol, f"{e} → {traceback.format_exc().splitlines()[-1]}"))
+            match, score, _ = detect_head_and_shoulders(df, inverse=inverse)
+            if bool(match) and float(score) >= confidence_threshold:
+                results.append({
+                    "Symbol": symbol.replace(".NS", ""),
+                    "Confidence %": round(score, 2),
+                    "Pattern": pattern_type
+                })
+            else:
+                skipped.append((symbol, "Pattern not matched"))
+        except Exception as e:
+            import traceback
+            skipped.append((symbol, f"{e} → {traceback.format_exc().splitlines()[-1]}"))
+
     except Exception as e:
         skipped.append((symbol, str(e)))
 
