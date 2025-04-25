@@ -3,7 +3,7 @@ from scipy.signal import find_peaks
 
 # Helper function to check similarity in height
 def is_similar(a, b, tolerance=0.1):
-    return abs(a - b) / max(a, b) <= tolerance
+    return bool(abs(a - b) / max(a, b) <= tolerance)
 
 def detect_head_and_shoulders(df, inverse=False):
     prices = np.ravel(df['Close'].values)
