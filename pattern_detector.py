@@ -27,7 +27,10 @@ def detect_head_and_shoulders(df, inverse=False):
         if not (ls < head < rs):
             continue
 
-        if not (prices[head] > prices[ls] and prices[head] > prices[rs]):
+                lhs = prices[ls].item() if hasattr(prices[ls], 'item') else prices[ls]
+        hd = prices[head].item() if hasattr(prices[head], 'item') else prices[head]
+        rhs = prices[rs].item() if hasattr(prices[rs], 'item') else prices[rs]
+        if not (hd > lhs and hd > rhs):
             continue
 
         if not is_similar(prices[ls], prices[rs], tolerance=0.15):
