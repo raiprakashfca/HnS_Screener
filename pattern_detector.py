@@ -44,7 +44,7 @@ def detect_head_and_shoulders(df, inverse=False):
         trough1 = min(valid_troughs, key=lambda x: abs(x - ((ls + head) // 2)))
         trough2 = min(valid_troughs, key=lambda x: abs(x - ((head + rs) // 2)))
 
-        if not (ls < trough1 < head and head < trough2 < rs):
+        if not (ls < trough1 and trough1 < head and head < trough2 and trough2 < rs):
             continue
 
         neckline_slope = (prices[trough2] - prices[trough1]) / (trough2 - trough1 + 1e-9)
