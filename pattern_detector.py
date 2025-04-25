@@ -20,6 +20,7 @@ def detect_head_and_shoulders(df, inverse=False):
         return False, 0, {}
 
     for i in range(1, len(peaks) - 1):
+        print(f"🔍 Checking peak triplet: LS={peaks[i - 1]}, Head={peaks[i]}, RS={peaks[i + 1]}")
         ls = peaks[i - 1]
         head = peaks[i]
         rs = peaks[i + 1]
@@ -31,7 +32,12 @@ def detect_head_and_shoulders(df, inverse=False):
         hd = float(prices[int(head)])
         rhs = float(prices[int(rs)])
 
-        if not (hd > lhs and hd > rhs):
+        try:
+            assert isinstance(hd, float) and isinstance(lhs, float) and isinstance(rhs, float)
+            if not (hd > lhs and hd > rhs):
+                            continue
+        except Exception as e:
+            print(f"❌ Comparison error with hd={hd}, lhs={lhs}, rhs={rhs} → {e}")
             continue
 
         if not is_similar(lhs, rhs, tolerance=0.15):
