@@ -1,14 +1,13 @@
 import streamlit as st
-
 st.set_page_config(page_title="📉 Head & Shoulders Screener", layout="wide")
 
 import pandas as pd
 import yfinance as yf
 import datetime
-from pattern_detector import detect_head_and_shoulders
-from google.oauth2.service_account import Credentials
-import gspread
 import os
+import gspread
+from google.oauth2.service_account import Credentials
+from pattern_detector import detect_head_and_shoulders
 
 # Google Sheets setup
 SHEET_NAME = "HnS_Pattern_Log"
