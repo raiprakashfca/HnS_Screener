@@ -13,7 +13,6 @@ from pattern_detector import detect_head_and_shoulders
 SHEET_NAME = "HnS_Pattern_Log"
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
-# Initialize Google Sheets client
 def get_gsheet_client():
     creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=SCOPES)
     client = gspread.authorize(creds)
@@ -29,7 +28,6 @@ def append_to_gsheet(matches):
     except Exception as e:
         st.error(f"❌ Failed to append to Google Sheets: {e}")
 
-# Load NIFTY 100 symbols from file safely
 if os.path.exists("nifty100.txt"):
     with open("nifty100.txt") as f:
         nifty100_symbols = [line.strip() for line in f.readlines() if line.strip()]
@@ -62,7 +60,7 @@ for i, symbol in enumerate(nifty100_symbols):
         inverse = True if pattern_type == "Inverse H&S" else False
         match, score, _ = detect_head_and_shoulders(df, inverse=inverse)
 
-        if match and score >= confidence_threshold:
+        if bool(match) and float(score) >= confidence_threshold:
             results.append({
                 "Symbol": symbol.replace(".NS", ""),
                 "Confidence %": round(score, 2),
@@ -90,7 +88,6 @@ if results:
 else:
     st.warning("😕 No stocks matched the selected pattern with current threshold.")
 
-# Show skipped summary
 if skipped:
     with st.expander("🧾 View Skipped Stocks"):
         st.dataframe(pd.DataFrame(skipped, columns=["Symbol", "Reason"]))
